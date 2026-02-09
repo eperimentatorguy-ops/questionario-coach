@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pain Discovery - Coaching Professionals</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // ============================================
+    // CONFIGURAZIONE SUPABASE
+    // ============================================
+    const SUPABASE_URL = 'https://mypapayugbufzswtvyhq.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15cGFwYXl1Z2J1Znpzd3R2eWhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MTU2NzAsImV4cCI6MjA4NjE5MTY3MH0.ALNeVlzG4LzQmKukEr3O6JqRt28BZB-bssiz3hUxH8k';
+    const ADMIN_PASSWORD = "coach2024";
+    // ============================================
+
+    // Icons as simple SVG components
+    const Icons = {
+      ChevronRight: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>,
+      ChevronLeft: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>,
+      ChevronUp: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7"/></svg>,
+      ChevronDown: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>,
+      Check: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/></svg>,
+      CheckSmall: () => <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>,
+      Users: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>,
+      Target: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth={2}/><circle cx="12" cy="12" r="6" strokeWidth={2}/><circle cx="12" cy="12" r="2" strokeWidth={2}/></svg>,
+      Zap: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
+      Search: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>,
+      Wrench: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>,
+      MessageCircle: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>,
+      Lock: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>,
+      Spinner: () => <svg className="w-10 h-10 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>,
+      Database: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3" strokeWidth={2}/><path strokeWidth={2} d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path strokeWidth={2} d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,
+      Cloud: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>,
+      BarChart: () => <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>,
+      ArrowLeft: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>,
+      Refresh: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>,
+      Download: () => <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>,
+      Trash: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>,
+      Eye: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>,
+      TrendingUp: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>,
+    };
+
+    function App() {
+      const [currentSection, setCurrentSection] = useState(0);
+      const [answers, setAnswers] = useState({});
+      const [submitted, setSubmitted] = useState(false);
+      const [allResponses, setAllResponses] = useState([]);
+      const [isLoading, setIsLoading] = useState(true);
+      const [isSaving, setIsSaving] = useState(false);
+      const [connected, setConnected] = useState(false);
+      
+      const [showWelcome, setShowWelcome] = useState(true);
+      const [adminMode, setAdminMode] = useState(false);
+      const [adminPassword, setAdminPassword] = useState('');
+      const [adminError, setAdminError] = useState('');
+      const [showLoginForm, setShowLoginForm] = useState(false);
+
+      const platforms = [
+        { id: 'linkedin_organic', name: 'LinkedIn (organico)' },
+        { id: 'linkedin_ads', name: 'LinkedIn Ads/Sales Nav' },
+        { id: 'instagram', name: 'Instagram' },
+        { id: 'facebook', name: 'Facebook/Gruppi' },
+        { id: 'passaparola', name: 'Passaparola/Referral' },
+        { id: 'directory', name: 'Directory (ICF, CoachHub)' },
+        { id: 'marketplace', name: 'Marketplace (Fiverr, Upwork)' },
+        { id: 'sito_seo', name: 'Sito web + SEO' },
+        { id: 'email_mkt', name: 'Email marketing' },
+        { id: 'eventi', name: 'Eventi/Networking' },
+        { id: 'altro', name: 'Altro' }
+      ];
+
+      const frustrationOptions = [
+        'Tempo perso in attività amministrative',
+        'Difficoltà a dimostrare progressi ai clienti',
+        'Difficoltà a trovare clienti qualificati',
+        'Clienti che interrompono il percorso',
+        'Difficoltà a giustificare i prezzi',
+        'Troppi strumenti da gestire'
+      ];
+
+      const sections = [
+        {
+          id: 'profilo', title: 'Profilo', icon: 'Users', description: 'Raccontaci di te',
+          questions: [
+            { id: 'q1_anni', text: 'Da quanti anni lavori come coach?', type: 'single', required: true, options: ['Meno di 1 anno', '1-3 anni', '3-5 anni', 'Più di 5 anni'] },
+            { id: 'q2_clienti', text: 'Quanti clienti attivi al mese?', type: 'single', required: true, options: ['1-5', '6-15', '16-30', 'Più di 30'] },
+            { id: 'q3_specializzazione', text: 'La tua specializzazione?', type: 'single', required: true, options: ['Executive/Business', 'Life coaching', 'Career coaching', 'Health & Wellness', 'Team/Group', 'Altro'] },
+            { id: 'q4_fatturato', text: '% fatturato da coaching 1:1?', type: 'single', required: true, options: ['Meno del 50%', '50-80%', "Più dell'80%"] }
+          ]
+        },
+        {
+          id: 'jtbd', title: 'Obiettivi', icon: 'Target', description: 'Cosa vuoi ottenere',
+          questions: [
+            { id: 'q5_obiettivo', text: 'Obiettivo principale nei prossimi 12 mesi?', type: 'single', required: true, options: ['Più clienti', 'Più valore per cliente', 'Meno tempo operativo', 'Modello scalabile', 'Risultati misurabili', 'Altro'] },
+            { id: 'q6_ostacolo', text: 'Cosa ti impedisce di raggiungerlo?', type: 'textarea', required: true, placeholder: 'Descrivi il principale ostacolo...' }
+          ]
+        },
+        {
+          id: 'pain', title: 'Sfide', icon: 'Zap', description: 'Cosa ti frustra di più',
+          questions: [
+            { id: 'q7_frustrazioni_ranking', text: 'Ordina per frustrazione (più alta in cima)', type: 'ranking', required: true },
+            { id: 'q7b_altra', text: 'Altra frustrazione?', type: 'text', required: false, placeholder: 'Opzionale...' },
+            { id: 'q8_situazione', text: "Descrivi l'ultima volta che hai provato questa frustrazione", type: 'textarea', required: false, placeholder: 'Cosa è successo?' },
+            { id: 'q9_soluzione', text: 'Come hai provato a risolverla?', type: 'textarea', required: false, placeholder: 'Strumenti o metodi usati...' }
+          ]
+        },
+        {
+          id: 'acquisizione', title: 'Acquisizione', icon: 'Search', description: 'Come trovi clienti',
+          questions: [
+            { id: 'q10_piattaforme', text: 'Piattaforme usate e soddisfazione (1-10)', type: 'platform_grid', required: true },
+            { id: 'q10b_manca', text: 'Cosa manca o va migliorato?', type: 'textarea', required: false, placeholder: 'Es. "LinkedIn non converte"...' }
+          ]
+        },
+        {
+          id: 'strumenti', title: 'Strumenti', icon: 'Wrench', description: 'Budget e tool',
+          questions: [
+            { id: 'q11_spesa', text: 'Spesa mensile in strumenti?', type: 'single', required: true, options: ['€0-50', '€51-150', '€151-300', 'Più di €300'] },
+            { id: 'q12_abbandonato', text: 'Strumento abbandonato e perché?', type: 'text', required: false, placeholder: 'Es. "Ho smesso di usare X perché..."' }
+          ]
+        },
+        {
+          id: 'finale', title: 'Finale', icon: 'MessageCircle', description: 'Ultime domande',
+          questions: [
+            { id: 'q13_magico', text: 'Se potessi risolvere UN problema, quale?', type: 'text', required: true, placeholder: 'Il problema da eliminare...' },
+            { id: 'q14_ricerca', text: 'Hai cercato soluzioni negli ultimi 3 mesi?', type: 'single', required: true, options: ['Sì, ho provato tool/servizi', 'Sì, ma nulla di adatto', 'No, mancanza di tempo', 'No, non urgente'] },
+            { id: 'q15_altro', text: 'Altro da condividere?', type: 'textarea', required: false, placeholder: 'Qualsiasi pensiero...' },
+            { id: 'q16_intervista', text: 'Disponibile per intervista 15 min?', type: 'single', required: true, options: ['Sì', 'No'] },
+            { id: 'q17_email', text: 'La tua email', type: 'email', required: false, conditional: { question: 'q16_intervista', value: 'Sì' }, placeholder: 'email@esempio.com' }
+          ]
+        }
+      ];
+
+      useEffect(() => {
+        const init = async () => {
+          setAnswers({ q7_frustrazioni_ranking: [...frustrationOptions] });
+          try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses?select=id&limit=1`, {
+              headers: { 'apikey': SUPABASE_ANON_KEY }
+            });
+            setConnected(res.ok);
+          } catch (e) {
+            setConnected(false);
+          }
+          setIsLoading(false);
+        };
+        init();
+      }, []);
+
+      const loadResponses = async () => {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses?order=created_at.desc`, {
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setAllResponses(data.map(r => ({ ...r.answers, id: r.id, created_at: r.created_at })));
+          }
+        } catch (e) { console.error(e); }
+      };
+
+      const saveResponse = async (data) => {
+        setIsSaving(true);
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/survey_responses`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ answers: data })
+          });
+          setIsSaving(false);
+          return res.ok;
+        } catch (e) {
+          setIsSaving(false);
+          return false;
+        }
+      };
+
+      const clearAll = async () => {
+        if (!confirm('Eliminare TUTTE le risposte?')) return;
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/survey_responses?id=gt.0`, {
+            method: 'DELETE',
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+          });
+          setAllResponses([]);
+        } catch (e) {}
+      };
+
+      const currentSectionData = sections[currentSection];
+      const IconComponent = Icons[currentSectionData?.icon] || Icons.Users;
+
+      const handleAnswer = (id, value) => setAnswers(prev => ({ ...prev, [id]: value }));
+
+      const handlePlatformToggle = (pid) => {
+        const current = answers.q10_piattaforme || {};
+        if (current[pid]) {
+          const { [pid]: removed, ...rest } = current;
+          setAnswers(prev => ({ ...prev, q10_piattaforme: rest }));
+        } else {
+          setAnswers(prev => ({ ...prev, q10_piattaforme: { ...current, [pid]: { used: true, satisfaction: 5 } } }));
+        }
+      };
+
+      const handlePlatformSatisfaction = (pid, sat) => {
+        const current = answers.q10_piattaforme || {};
+        setAnswers(prev => ({ ...prev, q10_piattaforme: { ...current, [pid]: { ...current[pid], satisfaction: sat } } }));
+      };
+
+      const moveItem = (index, dir) => {
+        const items = [...(answers.q7_frustrazioni_ranking || frustrationOptions)];
+        const newIndex = index + dir;
+        if (newIndex < 0 || newIndex >= items.length) return;
+        [items[index], items[newIndex]] = [items[newIndex], items[index]];
+        setAnswers(prev => ({ ...prev, q7_frustrazioni_ranking: items }));
+      };
+
+      const isQuestionVisible = (q) => !q.conditional || answers[q.conditional.question] === q.conditional.value;
+
+      const isSectionComplete = () => currentSectionData.questions.every(q => {
+        if (!isQuestionVisible(q) || !q.required) return true;
+        if (q.type === 'ranking') return true;
+        if (q.type === 'platform_grid') return Object.keys(answers.q10_piattaforme || {}).length > 0;
+        const ans = answers[q.id];
+        return ans && ans.toString().trim() !== '';
+      });
+
+      const handleNext = async () => {
+        if (currentSection < sections.length - 1) {
+          setCurrentSection(prev => prev + 1);
+          window.scrollTo(0, 0);
+        } else {
+          const success = await saveResponse({ ...answers, timestamp: new Date().toISOString() });
+          if (success) setSubmitted(true);
+          else alert('Errore nel salvataggio. Riprova.');
+        }
+      };
+
+      const handlePrev = () => { if (currentSection > 0) { setCurrentSection(prev => prev - 1); window.scrollTo(0, 0); } };
+
+      const resetForm = () => {
+        setAnswers({ q7_frustrazioni_ranking: [...frustrationOptions] });
+        setCurrentSection(0);
+        setSubmitted(false);
+      };
+
+      const handleAdminLogin = () => {
+        if (adminPassword === ADMIN_PASSWORD) {
+          setAdminMode(true);
+          setShowWelcome(false);
+          setAdminError('');
+          loadResponses();
+        } else {
+          setAdminError('Password errata');
+        }
+      };
+
+      const exportCSV = () => {
+        if (!allResponses.length) return;
+        const flatten = (r) => {
+          const f = { ...r };
+          if (f.q7_frustrazioni_ranking) f.q7_frustrazioni_ranking = f.q7_frustrazioni_ranking.join(' > ');
+          if (f.q10_piattaforme) {
+            Object.entries(f.q10_piattaforme).forEach(([k, v]) => { f[`plat_${k}`] = v.satisfaction; });
+            delete f.q10_piattaforme;
+          }
+          return f;
+        };
+        const flat = allResponses.map(flatten);
+        const headers = [...new Set(flat.flatMap(Object.keys))];
+        const csv = [headers.join(','), ...flat.map(row => headers.map(h => {
+          const v = row[h] ?? '';
+          return typeof v === 'string' && (v.includes(',') || v.includes('"') || v.includes('\n')) ? `"${v.replace(/"/g, '""')}"` : v;
+        }).join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `coach-responses-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+      };
+
+      const exportJSON = () => {
+        const blob = new Blob([JSON.stringify(allResponses, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `coach-responses-${new Date().toISOString().slice(0,10)}.json`; a.click();
+      };
+
+      // Loading
+      if (isLoading) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+              <div className="text-emerald-600 mb-3"><Icons.Spinner /></div>
+              <p className="text-gray-600">Connessione...</p>
+            </div>
+          </div>
+        );
+      }
+
+      // Welcome
+      if (showWelcome && !adminMode) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-md">
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-emerald-600"><Icons.Target /></span>
+                </div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Pain Discovery</h1>
+                <p className="text-emerald-600 font-medium">Coaching Professionals</p>
+                <p className="text-gray-500 text-sm mt-2">~5 minuti per completare</p>
+              </div>
+              
+              <button onClick={() => setShowWelcome(false)} className="w-full py-3 sm:py-4 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center justify-center gap-2">
+                Inizia <Icons.ChevronRight />
+              </button>
+              
+              <div className="mt-4 flex items-center justify-center gap-2 text-xs">
+                <span className={connected ? "text-emerald-600" : "text-amber-600"}>
+                  {connected ? "● Database connesso" : "○ Database offline"}
+                </span>
+              </div>
+              
+              <div className="mt-6 pt-4 border-t">
+                {!showLoginForm ? (
+                  <button onClick={() => setShowLoginForm(true)} className="w-full py-2 text-gray-400 text-sm hover:text-gray-600 flex items-center justify-center gap-2">
+                    <Icons.Lock /> Admin
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    <input type="password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()} placeholder="Password" className="w-full p-3 border-2 rounded-xl focus:border-emerald-500 outline-none" />
+                    {adminError && <p className="text-red-500 text-sm text-center">{adminError}</p>}
+                    <div className="flex gap-2">
+                      <button onClick={() => { setShowLoginForm(false); setAdminPassword(''); }} className="flex-1 py-2 text-gray-600 rounded-xl hover:bg-gray-100">Annulla</button>
+                      <button onClick={handleAdminLogin} className="flex-1 py-2 bg-gray-800 text-white rounded-xl hover:bg-gray-900">Accedi</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Admin
+      if (adminMode) {
+        const stats = () => {
+          if (!allResponses.length) return null;
+          const ranking = {};
+          allResponses.forEach(r => {
+            (r.q7_frustrazioni_ranking || []).forEach((item, i) => {
+              ranking[item] = (ranking[item] || 0) + (frustrationOptions.length - i);
+            });
+          });
+          const sortedRanking = Object.entries(ranking).sort((a, b) => b[1] - a[1]);
+          const platStats = {};
+          platforms.forEach(p => platStats[p.id] = { name: p.name, count: 0, total: 0 });
+          allResponses.forEach(r => {
+            Object.entries(r.q10_piattaforme || {}).forEach(([k, v]) => {
+              if (platStats[k]) { platStats[k].count++; platStats[k].total += v.satisfaction || 0; }
+            });
+          });
+          const sortedPlat = Object.values(platStats).filter(p => p.count > 0).sort((a, b) => b.count - a.count);
+          return { sortedRanking, sortedPlat };
+        };
+        const s = stats();
+        
+        return (
+          <div className="min-h-screen bg-gray-900 text-white p-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-emerald-400"><Icons.BarChart /></span>
+                  <h1 className="text-lg sm:text-xl font-bold">Admin Dashboard</h1>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={loadResponses} className="px-3 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 text-sm"><Icons.Refresh /></button>
+                  <button onClick={() => { setAdminMode(false); setShowWelcome(true); setShowLoginForm(false); }} className="px-3 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 flex items-center gap-2 text-sm"><Icons.ArrowLeft /> Esci</button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                <div className="bg-gray-800 rounded-xl p-4"><p className="text-gray-400 text-xs">Totali</p><p className="text-2xl font-bold text-emerald-400">{allResponses.length}</p></div>
+                <div className="bg-gray-800 rounded-xl p-4"><p className="text-gray-400 text-xs">Interviste</p><p className="text-2xl font-bold text-blue-400">{allResponses.filter(r => r.q16_intervista === 'Sì').length}</p></div>
+                <div className="bg-gray-800 rounded-xl p-4"><p className="text-gray-400 text-xs">Con email</p><p className="text-2xl font-bold text-purple-400">{allResponses.filter(r => r.q17_email).length}</p></div>
+                <div className="bg-gray-800 rounded-xl p-4"><p className="text-gray-400 text-xs">Status</p><p className="text-sm font-bold text-emerald-400">● Online</p></div>
+              </div>
+              
+              {allResponses.length === 0 ? (
+                <div className="bg-gray-800 rounded-xl p-8 text-center">
+                  <span className="text-gray-600 block mb-3"><Icons.Database /></span>
+                  <p className="text-gray-400">Nessuna risposta ancora</p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-gray-800 rounded-xl p-4">
+                      <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm"><span className="text-red-400"><Icons.TrendingUp /></span> Frustrazioni</h3>
+                      <div className="space-y-2">{s?.sortedRanking.slice(0, 6).map(([name, score], i) => (
+                        <div key={name} className="flex items-center gap-2">
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-red-500' : i === 1 ? 'bg-orange-500' : 'bg-gray-600'}`}>{i + 1}</span>
+                          <span className="text-xs flex-1 truncate">{name}</span>
+                          <span className="text-xs text-gray-400">{score}</span>
+                        </div>
+                      ))}</div>
+                    </div>
+                    <div className="bg-gray-800 rounded-xl p-4">
+                      <h3 className="font-semibold mb-3 flex items-center gap-2 text-sm"><span className="text-blue-400"><Icons.Search /></span> Piattaforme</h3>
+                      <div className="space-y-2">{s?.sortedPlat.slice(0, 6).map(p => (
+                        <div key={p.name} className="flex items-center justify-between">
+                          <span className="text-xs truncate flex-1">{p.name}</span>
+                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${(p.total / p.count) >= 7 ? 'bg-emerald-500/20 text-emerald-400' : (p.total / p.count) >= 5 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>{(p.total / p.count).toFixed(1)}</span>
+                        </div>
+                      ))}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-800 rounded-xl p-4 mb-6">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                      <h3 className="font-semibold flex items-center gap-2 text-sm"><span className="text-purple-400"><Icons.Eye /></span> Risposte</h3>
+                      <div className="flex gap-2">
+                        <button onClick={exportCSV} className="px-3 py-1 bg-emerald-600 rounded text-xs hover:bg-emerald-500 flex items-center gap-1"><Icons.Download /> CSV</button>
+                        <button onClick={exportJSON} className="px-3 py-1 bg-blue-600 rounded text-xs hover:bg-blue-500 flex items-center gap-1"><Icons.Download /> JSON</button>
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead><tr className="border-b border-gray-700"><th className="text-left py-2 px-2 text-gray-400">Data</th><th className="text-left py-2 px-2 text-gray-400">Spec.</th><th className="text-left py-2 px-2 text-gray-400">Obiettivo</th><th className="text-left py-2 px-2 text-gray-400">Email</th></tr></thead>
+                        <tbody>{allResponses.slice().reverse().slice(0, 15).map((r, i) => (
+                          <tr key={r.id || i} className="border-b border-gray-700/50">
+                            <td className="py-2 px-2">{r.created_at ? new Date(r.created_at).toLocaleDateString('it-IT') : '-'}</td>
+                            <td className="py-2 px-2 truncate max-w-[80px]">{r.q3_specializzazione || '-'}</td>
+                            <td className="py-2 px-2 truncate max-w-[100px]">{r.q5_obiettivo || '-'}</td>
+                            <td className="py-2 px-2 truncate max-w-[120px]">{r.q17_email || '-'}</td>
+                          </tr>
+                        ))}</tbody>
+                      </table>
+                    </div>
+                  </div>
+                  
+                  <button onClick={clearAll} className="px-4 py-2 bg-red-600/20 text-red-400 rounded-lg text-sm hover:bg-red-600/30 flex items-center gap-2"><Icons.Trash /> Elimina tutto</button>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      // Submitted
+      if (submitted) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-md text-center">
+              <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4"><span className="text-emerald-600"><Icons.Check /></span></div>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">Grazie!</h2>
+              <p className="text-gray-600 mb-4">Le tue risposte sono state salvate.</p>
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mb-6"><Icons.Cloud /> Salvato su Supabase</div>
+              <button onClick={resetForm} className="w-full py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 active:bg-emerald-800 transition">Nuovo questionario</button>
+            </div>
+          </div>
+        );
+      }
+
+      // Main questionnaire
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 p-3 sm:p-4">
+          <div className="max-w-xl mx-auto">
+            {/* Progress */}
+            <div className="mb-4">
+              <div className="flex justify-between mb-2">
+                {sections.map((sec, i) => {
+                  const Icon = Icons[sec.icon] || Icons.Users;
+                  return (
+                    <div key={sec.id} className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${i === currentSection ? 'bg-emerald-600 text-white scale-110' : i < currentSection ? 'bg-emerald-200 text-emerald-700' : 'bg-gray-200 text-gray-400'}`}>
+                      <Icon />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="h-1.5 bg-gray-200 rounded-full"><div className="h-full bg-emerald-600 rounded-full transition-all" style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }} /></div>
+            </div>
+
+            {/* Card */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="bg-emerald-600 text-white p-4 sm:p-5">
+                <div className="flex items-center gap-2 mb-1"><IconComponent /><h2 className="text-lg font-semibold">{currentSectionData.title}</h2></div>
+                <p className="text-emerald-100 text-sm">{currentSectionData.description}</p>
+              </div>
+
+              <div className="p-4 sm:p-6 space-y-5">
+                {currentSectionData.questions.map((q) => {
+                  if (!isQuestionVisible(q)) return null;
+                  return (
+                    <div key={q.id} className="space-y-2">
+                      <label className="block font-medium text-gray-800 text-sm sm:text-base">{q.text}{q.required && <span className="text-red-500 ml-1">*</span>}</label>
+
+                      {q.type === 'single' && (
+                        <div className="space-y-2">{q.options.map((opt) => (
+                          <label key={opt} className={`flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${answers[q.id] === opt ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
+                            <input type="radio" className="sr-only" checked={answers[q.id] === opt} onChange={() => handleAnswer(q.id, opt)} />
+                            <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center flex-shrink-0 ${answers[q.id] === opt ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300'}`}>{answers[q.id] === opt && <div className="w-2 h-2 bg-white rounded-full" />}</div>
+                            <span className="text-gray-700 text-sm">{opt}</span>
+                          </label>
+                        ))}</div>
+                      )}
+
+                      {q.type === 'ranking' && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500">Usa le frecce per riordinare</p>
+                          {(answers.q7_frustrazioni_ranking || frustrationOptions).map((item, index) => (
+                            <div key={`${item}-${index}`} className="flex items-center gap-2 p-2 sm:p-3 rounded-xl border-2 border-gray-200 bg-white">
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${index === 0 ? 'bg-red-100 text-red-600' : index === 1 ? 'bg-orange-100 text-orange-600' : index === 2 ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-500'}`}>{index + 1}</span>
+                              <span className="text-gray-700 text-xs sm:text-sm flex-1">{item}</span>
+                              <div className="flex flex-col">
+                                <button type="button" onClick={() => moveItem(index, -1)} disabled={index === 0} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"><Icons.ChevronUp /></button>
+                                <button type="button" onClick={() => moveItem(index, 1)} disabled={index === frustrationOptions.length - 1} className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"><Icons.ChevronDown /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {q.type === 'platform_grid' && (
+                        <div className="space-y-2">{platforms.map((p) => {
+                          const data = (answers.q10_piattaforme || {})[p.id];
+                          const isUsed = !!data;
+                          return (
+                            <div key={p.id} className={`p-3 rounded-xl border-2 transition-all ${isUsed ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'}`}>
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <label className="flex items-center cursor-pointer flex-1 min-w-0">
+                                  <input type="checkbox" className="sr-only" checked={isUsed} onChange={() => handlePlatformToggle(p.id)} />
+                                  <div className={`w-5 h-5 rounded border-2 mr-2 flex items-center justify-center flex-shrink-0 ${isUsed ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300'}`}>{isUsed && <span className="text-white"><Icons.CheckSmall /></span>}</div>
+                                  <span className="text-gray-700 text-sm truncate">{p.name}</span>
+                                </label>
+                                {isUsed && <select value={data?.satisfaction || 5} onChange={(e) => handlePlatformSatisfaction(p.id, parseInt(e.target.value))} className="border rounded-lg px-2 py-1 text-sm bg-white">{[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n}</option>)}</select>}
+                              </div>
+                            </div>
+                          );
+                        })}</div>
+                      )}
+
+                      {(q.type === 'text' || q.type === 'email') && <input type={q.type === 'email' ? 'email' : 'text'} value={answers[q.id] || ''} onChange={(e) => handleAnswer(q.id, e.target.value)} placeholder={q.placeholder} className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 outline-none transition text-sm" />}
+
+                      {q.type === 'textarea' && <textarea value={answers[q.id] || ''} onChange={(e) => handleAnswer(q.id, e.target.value)} placeholder={q.placeholder} rows={3} className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-emerald-500 outline-none transition resize-none text-sm" />}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Navigation */}
+              <div className="p-4 sm:p-6 bg-gray-50 flex justify-between gap-3">
+                <button type="button" onClick={handlePrev} disabled={currentSection === 0} className={`flex items-center gap-1 px-4 py-2.5 rounded-xl font-medium transition ${currentSection === 0 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-200'}`}><Icons.ChevronLeft /></button>
+                <button type="button" onClick={handleNext} disabled={!isSectionComplete() || isSaving} className={`flex items-center gap-1 px-5 py-2.5 rounded-xl font-medium transition ${isSectionComplete() && !isSaving ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-200 text-gray-400'}`}>
+                  {isSaving ? <span className="animate-spin">↻</span> : <>{currentSection === sections.length - 1 ? 'Invia' : 'Avanti'} <Icons.ChevronRight /></>}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
